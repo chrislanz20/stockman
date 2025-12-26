@@ -26,11 +26,25 @@ class YahooFinanceSource:
         stock = yf.Ticker(ticker)
         info = stock.info
 
-        # Get current price data
-        hist = stock.history(period="2d")
+        # Get current price data with multiple fallbacks
+        current_price = (
+            info.get("currentPrice") or
+            info.get("regularMarketPrice") or
+            info.get("regularMarketPreviousClose") or
+            info.get("previousClose") or
+            0
+        )
 
-        current_price = info.get("currentPrice") or info.get("regularMarketPrice", 0)
-        previous_close = info.get("previousClose", current_price)
+        # If still no price, try history
+        if current_price == 0:
+            try:
+                hist = stock.history(period="5d")
+                if not hist.empty:
+                    current_price = hist['Close'].iloc[-1]
+            except:
+                pass
+
+        previous_close = info.get("previousClose") or info.get("regularMarketPreviousClose") or current_price
 
         change = current_price - previous_close if current_price and previous_close else 0
         change_pct = (change / previous_close * 100) if previous_close else 0
