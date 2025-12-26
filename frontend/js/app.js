@@ -209,24 +209,31 @@ async function startVoice(mode) {
 
         mediaRecorder.onstop = async () => {
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+            // Update status before processing
+            elements.voiceStatus.textContent = 'Processing...';
+
             await processVoice(audioBlob, mode);
 
             // Stop all tracks
             stream.getTracks().forEach(track => track.stop());
+
+            // Hide modal after processing
+            elements.voiceModal.classList.add('hidden');
         };
 
         mediaRecorder.start();
         isRecording = true;
 
-        // Show voice modal
+        // Show voice modal with clear instructions
         elements.voiceModal.classList.remove('hidden');
         elements.voiceStatus.textContent = mode === 'chat'
-            ? 'Listening... Talk to Stockman'
-            : 'Listening... Speak your message';
+            ? '🎤 Listening... Tap to stop'
+            : '🎤 Speak your message... Tap to stop';
 
     } catch (error) {
         console.error('Microphone error:', error);
-        alert('Could not access microphone. Please check permissions.');
+        alert('Could not access microphone. Please check your browser permissions and try again.');
     }
 }
 
@@ -235,15 +242,13 @@ function stopVoice() {
         mediaRecorder.stop();
         isRecording = false;
     }
-
-    elements.voiceModal.classList.add('hidden');
 }
 
 async function processVoice(audioBlob, mode) {
     showTyping();
 
     try {
-        // Transcribe audio
+        // Transcribe audio using Whisper API
         const formData = new FormData();
         formData.append('audio', audioBlob, 'recording.webm');
 
@@ -252,16 +257,22 @@ async function processVoice(audioBlob, mode) {
             body: formData
         });
 
+        if (!transcribeResponse.ok) {
+            throw new Error('Transcription failed');
+        }
+
         const { text } = await transcribeResponse.json();
 
-        if (!text) {
+        if (!text || text.trim() === '') {
             hideTyping();
+            addMessage('assistant', "I didn't catch that. Please try speaking again.");
             return;
         }
 
         if (mode === 'text') {
-            // Voice to text - just put in input
+            // Voice to text - put in input and focus
             elements.messageInput.value = text;
+            elements.messageInput.focus();
             hideTyping();
         } else {
             // Voice chat - send message and get audio response
@@ -279,37 +290,75 @@ async function processVoice(audioBlob, mode) {
             hideTyping();
             addMessage('assistant', reply);
 
-            // Synthesize speech
+            // Speak the response
             await speakResponse(reply);
         }
     } catch (error) {
         console.error('Voice processing error:', error);
         hideTyping();
-        addMessage('assistant', 'Sorry, I had trouble understanding that. Please try again.');
+
+        // Try browser fallback for voice-to-text
+        if (mode === 'text') {
+            addMessage('assistant', 'Voice service temporarily unavailable. Please type your message.');
+        } else {
+            addMessage('assistant', 'Sorry, I had trouble with the voice service. Please try again or type your message.');
+        }
     }
 }
 
 async function speakResponse(text) {
     try {
+        // Try ElevenLabs API first
         const response = await fetch(`${API_BASE}/api/voice/synthesize`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text })
         });
 
-        const { audio } = await response.json();
+        if (response.ok) {
+            const { audio } = await response.json();
 
-        if (audio) {
-            // Convert hex to ArrayBuffer
-            const bytes = new Uint8Array(audio.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-            const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
-            const audioUrl = URL.createObjectURL(audioBlob);
+            if (audio) {
+                // Convert hex to ArrayBuffer and play
+                const bytes = new Uint8Array(audio.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+                const audioUrl = URL.createObjectURL(audioBlob);
 
-            const audioElement = new Audio(audioUrl);
-            audioElement.play();
+                const audioElement = new Audio(audioUrl);
+                await audioElement.play();
+                return;
+            }
         }
+
+        // Fallback to browser speech synthesis
+        useBrowserSpeech(text);
+
     } catch (error) {
-        console.error('Speech synthesis error:', error);
+        console.error('ElevenLabs error, using browser fallback:', error);
+        useBrowserSpeech(text);
+    }
+}
+
+function useBrowserSpeech(text) {
+    // Fallback to browser's built-in speech synthesis
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+
+        // Try to use a natural voice
+        const voices = speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v =>
+            v.name.includes('Samantha') ||
+            v.name.includes('Google') ||
+            v.name.includes('Microsoft')
+        );
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+        }
+
+        speechSynthesis.speak(utterance);
     }
 }
 
@@ -665,19 +714,23 @@ async function loadTicker() {
         const { portfolio } = await portfolioRes.json();
         const { watchlist } = await watchlistRes.json();
 
-        // Get all unique tickers
+        // Default popular stocks - always show these
+        const defaultTickers = [
+            'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA',  // Big tech
+            'META', 'NFLX', 'AMD', 'INTC', 'CRM', 'ORCL',      // More tech
+            'JPM', 'V', 'MA', 'BAC',                            // Finance
+            'JNJ', 'PFE', 'UNH',                                // Healthcare
+            'XOM', 'CVX'                                        // Energy
+        ];
+
+        // Get all unique tickers (defaults + portfolio + watchlist)
         const tickers = [...new Set([
+            ...defaultTickers,
             ...portfolio.map(s => s.ticker),
             ...watchlist.map(s => s.ticker)
         ])];
 
-        // If no stocks, show default major indices
-        if (tickers.length === 0) {
-            const defaultTickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA'];
-            await updateTickerWithStocks(defaultTickers, tickerContent);
-        } else {
-            await updateTickerWithStocks(tickers, tickerContent);
-        }
+        await updateTickerWithStocks(tickers, tickerContent);
 
         // Refresh ticker every 60 seconds
         setInterval(() => loadTicker(), 60000);
@@ -703,7 +756,8 @@ async function updateTickerWithStocks(tickers, tickerContent) {
         const tickerItems = stockData
             .filter(data => data && data.price)
             .map(data => {
-                const changePercent = data.change_percent || 0;
+                // API returns change_pct (from Finnhub)
+                const changePercent = data.change_pct || data.change_percent || 0;
                 const isUp = changePercent >= 0;
                 const changeClass = isUp ? 'up' : 'down';
                 const changeSign = isUp ? '+' : '';
