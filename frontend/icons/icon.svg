@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#000000"/>
+  <rect x="40" y="40" width="432" height="432" rx="60" fill="#111111" stroke="#00FF88" stroke-width="4"/>
+
+  <!-- Chart bars -->
+  <rect x="100" y="280" width="60" height="140" rx="8" fill="#00FF88" opacity="0.3"/>
+  <rect x="180" y="220" width="60" height="200" rx="8" fill="#00FF88" opacity="0.5"/>
+  <rect x="260" y="160" width="60" height="260" rx="8" fill="#00FF88" opacity="0.7"/>
+  <rect x="340" y="120" width="60" height="300" rx="8" fill="#00FF88"/>
+
+  <!-- Trend line -->
+  <path d="M100 320 L180 260 L260 200 L340 140 L420 100" stroke="#00FF88" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Arrow head -->
+  <path d="M400 80 L420 100 L400 120" stroke="#00FF88" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- S letter watermark -->
+  <text x="256" y="380" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#00FF88" text-anchor="middle" opacity="0.15">S</text>
+</svg>

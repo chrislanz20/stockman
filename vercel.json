@@ -1,0 +1,54 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "backend/main.py",
+            "use": "@vercel/python",
+            "config": {
+                "maxLambdaSize": "50mb"
+            }
+        },
+        {
+            "src": "frontend/**",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "backend/main.py"
+        },
+        {
+            "src": "/sw.js",
+            "dest": "frontend/sw.js"
+        },
+        {
+            "src": "/manifest.json",
+            "dest": "frontend/manifest.json"
+        },
+        {
+            "src": "/css/(.*)",
+            "dest": "frontend/css/$1"
+        },
+        {
+            "src": "/js/(.*)",
+            "dest": "frontend/js/$1"
+        },
+        {
+            "src": "/icons/(.*)",
+            "dest": "frontend/icons/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "frontend/index.html"
+        }
+    ],
+    "env": {
+        "ANTHROPIC_API_KEY": "@anthropic-api-key",
+        "ELEVENLABS_API_KEY": "@elevenlabs-api-key",
+        "ELEVENLABS_VOICE_ID": "@elevenlabs-voice-id",
+        "OPENAI_API_KEY": "@openai-api-key",
+        "FINNHUB_API_KEY": "@finnhub-api-key",
+        "ALPHA_VANTAGE_API_KEY": "@alpha-vantage-api-key"
+    }
+}

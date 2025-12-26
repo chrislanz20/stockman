@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Stockman">
+
+    <title>Stockman</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="logo">STOCKMAN</h1>
+            </div>
+            <div class="header-right">
+                <button id="settings-btn" class="icon-btn" aria-label="Settings">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Chat Area -->
+        <main class="chat-container" id="chat-container">
+            <!-- Morning Briefing Card (shown at top) -->
+            <div id="briefing-card" class="briefing-card hidden">
+                <div class="quote-section">
+                    <p class="quote-text" id="quote-text"></p>
+                    <p class="quote-author" id="quote-author"></p>
+                </div>
+                <div class="briefing-divider"></div>
+                <div class="briefing-content" id="briefing-content"></div>
+            </div>
+
+            <!-- Messages -->
+            <div id="messages" class="messages"></div>
+        </main>
+
+        <!-- Input Area -->
+        <footer class="input-area">
+            <div class="input-container">
+                <input
+                    type="text"
+                    id="message-input"
+                    class="message-input"
+                    placeholder="Ask Stockman anything..."
+                    autocomplete="off"
+                >
+                <button id="send-btn" class="send-btn" aria-label="Send">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="voice-buttons">
+                <button id="voice-chat-btn" class="voice-btn voice-chat" aria-label="Talk to Stockman">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                    <span>Talk to Stockman</span>
+                </button>
+                <button id="voice-text-btn" class="voice-btn voice-text" aria-label="Voice to Text">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                    <span>Voice to Text</span>
+                </button>
+            </div>
+        </footer>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button id="close-settings" class="icon-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="settings-tabs">
+                    <button class="tab-btn active" data-tab="portfolio">Portfolio</button>
+                    <button class="tab-btn" data-tab="watchlist">Watchlist</button>
+                    <button class="tab-btn" data-tab="profile">Profile</button>
+                </div>
+
+                <!-- Portfolio Tab -->
+                <div id="portfolio-tab" class="tab-content active">
+                    <div class="stock-list" id="portfolio-list"></div>
+                    <div class="add-stock-form">
+                        <input type="text" id="portfolio-ticker" placeholder="Ticker (e.g., AAPL)" class="stock-input">
+                        <input type="number" id="portfolio-shares" placeholder="Shares" class="stock-input small">
+                        <input type="number" id="portfolio-price" placeholder="Avg Price" class="stock-input small">
+                        <button id="add-portfolio-btn" class="add-btn">Add</button>
+                    </div>
+                </div>
+
+                <!-- Watchlist Tab -->
+                <div id="watchlist-tab" class="tab-content hidden">
+                    <div class="stock-list" id="watchlist-list"></div>
+                    <div class="add-stock-form">
+                        <input type="text" id="watchlist-ticker" placeholder="Ticker (e.g., TSLA)" class="stock-input">
+                        <button id="add-watchlist-btn" class="add-btn">Add to Watchlist</button>
+                    </div>
+                </div>
+
+                <!-- Profile Tab -->
+                <div id="profile-tab" class="tab-content hidden">
+                    <div class="profile-form">
+                        <label for="user-name">Your Name</label>
+                        <input type="text" id="user-name" placeholder="What should Stockman call you?" class="stock-input">
+                        <button id="save-profile-btn" class="add-btn">Save</button>
+                    </div>
+                    <div class="notification-settings">
+                        <h3>Notifications</h3>
+                        <button id="enable-notifications-btn" class="notification-btn">
+                            Enable Push Notifications
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice Recording Modal -->
+        <div id="voice-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="voice-recording">
+                <div class="voice-animation">
+                    <div class="voice-ring"></div>
+                    <div class="voice-ring"></div>
+                    <div class="voice-ring"></div>
+                </div>
+                <p class="voice-status" id="voice-status">Listening...</p>
+                <button id="stop-voice-btn" class="stop-voice-btn">Tap to Stop</button>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading" class="loading hidden">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/app.js"></script>
+</body>
+</html>
