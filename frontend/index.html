@@ -41,14 +41,39 @@
 
         <!-- Main Chat Area -->
         <main class="chat-container" id="chat-container">
-            <!-- Morning Briefing Card (shown at top) -->
-            <div id="briefing-card" class="briefing-card hidden">
-                <div class="quote-section">
-                    <p class="quote-text" id="quote-text"></p>
-                    <p class="quote-author" id="quote-author"></p>
+            <!-- Welcome Card (shown when no messages) -->
+            <div id="welcome-card" class="welcome-card">
+                <div class="welcome-greeting" id="welcome-greeting">
+                    <h2>Hey there! I'm Stockman.</h2>
+                    <p>Your personal stock research assistant. I'm here to help you track your investments, analyze stocks, and keep you informed on market opportunities.</p>
                 </div>
-                <div class="briefing-divider"></div>
-                <div class="briefing-content" id="briefing-content"></div>
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="openSettingsToTab('portfolio')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                        Add My Holdings
+                    </button>
+                    <button class="quick-action-btn" onclick="openSettingsToTab('watchlist')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        Track Stocks
+                    </button>
+                    <button class="quick-action-btn" onclick="openSettingsToTab('profile')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        Set My Name
+                    </button>
+                </div>
+                <div class="welcome-hint">
+                    <p>Try asking me: "What's happening with AAPL today?" or "Analyze NVDA for me"</p>
+                </div>
             </div>
 
             <!-- Messages -->
@@ -167,9 +192,13 @@
             </div>
         </div>
 
-        <!-- Loading Overlay -->
-        <div id="loading" class="loading hidden">
-            <div class="loading-spinner"></div>
+        <!-- Typing Indicator (shown in chat, not overlay) -->
+        <div id="typing-indicator" class="message assistant typing-indicator hidden">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
         </div>
     </div>
 

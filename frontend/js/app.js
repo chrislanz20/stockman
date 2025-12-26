@@ -29,11 +29,8 @@ const elements = {
     messageInput: document.getElementById('message-input'),
     sendBtn: document.getElementById('send-btn'),
 
-    // Briefing
-    briefingCard: document.getElementById('briefing-card'),
-    quoteText: document.getElementById('quote-text'),
-    quoteAuthor: document.getElementById('quote-author'),
-    briefingContent: document.getElementById('briefing-content'),
+    // Welcome card
+    welcomeCard: document.getElementById('welcome-card'),
 
     // Voice
     voiceChatBtn: document.getElementById('voice-chat-btn'),
@@ -65,8 +62,8 @@ const elements = {
     saveProfileBtn: document.getElementById('save-profile-btn'),
     enableNotificationsBtn: document.getElementById('enable-notifications-btn'),
 
-    // Loading
-    loading: document.getElementById('loading')
+    // Typing indicator
+    typingIndicator: document.getElementById('typing-indicator')
 };
 
 // ============================================
@@ -75,9 +72,9 @@ const elements = {
 
 document.addEventListener('DOMContentLoaded', () => {
     initEventListeners();
-    loadBriefing();
     loadSettings();
     registerServiceWorker();
+    loadUserGreeting();
 });
 
 function initEventListeners() {
@@ -139,8 +136,8 @@ async function sendMessage() {
     // Add user message to UI
     addMessage('user', message);
 
-    // Show loading
-    showLoading();
+    // Show typing indicator
+    showTyping();
 
     try {
         const response = await fetch(`${API_BASE}/api/chat`, {
@@ -151,25 +148,37 @@ async function sendMessage() {
 
         const data = await response.json();
 
+        // Hide typing before showing response
+        hideTyping();
+
         if (data.reply) {
             addMessage('assistant', data.reply);
         }
     } catch (error) {
         console.error('Chat error:', error);
+        hideTyping();
         addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
-    } finally {
-        hideLoading();
     }
 }
 
 function addMessage(role, content) {
+    // Hide welcome card when first message is sent
+    if (elements.welcomeCard && !elements.welcomeCard.classList.contains('hidden')) {
+        elements.welcomeCard.classList.add('hidden');
+    }
+
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${role}`;
 
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+    // Format assistant messages with markdown, escape user messages
+    const formattedContent = role === 'assistant'
+        ? formatMessage(content)
+        : `<p>${content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+
     messageDiv.innerHTML = `
-        <div class="message-content">${escapeHtml(content)}</div>
+        <div class="message-content">${formattedContent}</div>
         <div class="message-time">${time}</div>
     `;
 
@@ -229,7 +238,7 @@ function stopVoice() {
 }
 
 async function processVoice(audioBlob, mode) {
-    showLoading();
+    showTyping();
 
     try {
         // Transcribe audio
@@ -244,17 +253,19 @@ async function processVoice(audioBlob, mode) {
         const { text } = await transcribeResponse.json();
 
         if (!text) {
-            hideLoading();
+            hideTyping();
             return;
         }
 
         if (mode === 'text') {
             // Voice to text - just put in input
             elements.messageInput.value = text;
-            hideLoading();
+            hideTyping();
         } else {
             // Voice chat - send message and get audio response
+            hideTyping();
             addMessage('user', text);
+            showTyping();
 
             const chatResponse = await fetch(`${API_BASE}/api/chat`, {
                 method: 'POST',
@@ -263,6 +274,7 @@ async function processVoice(audioBlob, mode) {
             });
 
             const { reply } = await chatResponse.json();
+            hideTyping();
             addMessage('assistant', reply);
 
             // Synthesize speech
@@ -270,9 +282,8 @@ async function processVoice(audioBlob, mode) {
         }
     } catch (error) {
         console.error('Voice processing error:', error);
+        hideTyping();
         addMessage('assistant', 'Sorry, I had trouble understanding that. Please try again.');
-    } finally {
-        hideLoading();
     }
 }
 
@@ -301,33 +312,29 @@ async function speakResponse(text) {
 }
 
 // ============================================
-// Briefing Functions
+// Welcome & Greeting Functions
 // ============================================
 
-async function loadBriefing() {
+async function loadUserGreeting() {
     try {
-        const response = await fetch(`${API_BASE}/api/briefing`);
-        const data = await response.json();
+        const response = await fetch(`${API_BASE}/api/settings`);
+        const profile = await response.json();
 
-        if (data.quote) {
-            elements.quoteText.textContent = `"${data.quote.quote}"`;
-            elements.quoteAuthor.textContent = `— ${data.quote.author}`;
+        const greetingEl = document.getElementById('welcome-greeting');
+        if (greetingEl && profile.name && profile.name !== 'Friend') {
+            greetingEl.querySelector('h2').textContent = `Hey ${profile.name}! I'm Stockman.`;
         }
-
-        if (data.briefing_text) {
-            elements.briefingContent.textContent = data.briefing_text;
-        }
-
-        if (data.greeting) {
-            // Could show greeting somewhere
-        }
-
-        elements.briefingCard.classList.remove('hidden');
-
     } catch (error) {
-        console.error('Briefing error:', error);
-        // Hide briefing card on error
+        console.error('Greeting error:', error);
     }
+}
+
+function openSettingsToTab(tabName) {
+    elements.settingsModal.classList.remove('hidden');
+    loadPortfolio();
+    loadWatchlist();
+    loadProfile();
+    switchTab(tabName);
 }
 
 // ============================================
@@ -557,20 +564,50 @@ async function requestNotificationPermission() {
 // Utilities
 // ============================================
 
-function showLoading() {
-    elements.loading.classList.remove('hidden');
+function showTyping() {
+    // Move typing indicator into messages and show it
+    elements.messages.appendChild(elements.typingIndicator);
+    elements.typingIndicator.classList.remove('hidden');
+    elements.chatContainer.scrollTop = elements.chatContainer.scrollHeight;
 }
 
-function hideLoading() {
-    elements.loading.classList.add('hidden');
+function hideTyping() {
+    elements.typingIndicator.classList.add('hidden');
 }
 
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+function formatMessage(text) {
+    // Convert markdown-like formatting to HTML
+    let html = text
+        // Escape HTML first
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        // Bold: **text** or __text__
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__(.*?)__/g, '<strong>$1</strong>')
+        // Italic: *text* or _text_
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/_([^_]+)_/g, '<em>$1</em>')
+        // Bullet points: - item or • item
+        .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
+        // Numbered lists: 1. item
+        .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>')
+        // Line breaks
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+
+    // Wrap consecutive <li> in <ul>
+    html = html.replace(/(<li>.*?<\/li>)+/gs, '<ul>$&</ul>');
+
+    // Wrap in paragraph if not already structured
+    if (!html.startsWith('<')) {
+        html = '<p>' + html + '</p>';
+    }
+
+    return html;
 }
 
 // Make functions globally available for onclick handlers
 window.removeFromPortfolio = removeFromPortfolio;
 window.removeFromWatchlist = removeFromWatchlist;
+window.openSettingsToTab = openSettingsToTab;

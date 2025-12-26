@@ -121,50 +121,79 @@ body {
 }
 
 /* ============================================
-   Briefing Card
+   Welcome Card
    ============================================ */
 
-.briefing-card {
+.welcome-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 8px;
+    padding: 32px 24px;
+    text-align: center;
+    margin-bottom: 16px;
 }
 
-.briefing-card.hidden {
+.welcome-card.hidden {
     display: none;
 }
 
-.quote-section {
-    text-align: center;
-    padding: 16px 0;
-}
-
-.quote-text {
-    font-size: 18px;
-    font-style: italic;
-    color: var(--text-primary);
+.welcome-greeting h2 {
+    font-size: 24px;
+    font-weight: 600;
     margin-bottom: 12px;
-    line-height: 1.6;
+    color: var(--text-primary);
 }
 
-.quote-author {
-    font-size: 14px;
-    color: var(--accent);
-    font-weight: 500;
-}
-
-.briefing-divider {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--border-light), transparent);
-    margin: 20px 0;
-}
-
-.briefing-content {
-    color: var(--text-secondary);
+.welcome-greeting p {
     font-size: 15px;
-    line-height: 1.7;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 28px 0;
+}
+
+.quick-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-action-btn:hover {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.quick-action-btn svg {
+    flex-shrink: 0;
+}
+
+.welcome-hint {
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.welcome-hint p {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 /* ============================================
@@ -632,39 +661,91 @@ body {
 }
 
 /* ============================================
-   Loading
+   Typing Indicator
    ============================================ */
 
-.loading {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
+.typing-indicator {
+    padding: 16px 20px;
 }
 
-.loading.hidden {
+.typing-indicator.hidden {
     display: none;
 }
 
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+.typing-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
+.typing-dots span {
+    width: 8px;
+    height: 8px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    animation: typingBounce 1.4s ease-in-out infinite;
+}
+
+.typing-dots span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
     }
+    30% {
+        transform: translateY(-8px);
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   Message Content Formatting
+   ============================================ */
+
+.message-content {
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.message-content p {
+    margin-bottom: 12px;
+}
+
+.message-content p:last-child {
+    margin-bottom: 0;
+}
+
+.message-content strong, .message-content b {
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.message-content ul, .message-content ol {
+    margin: 12px 0;
+    padding-left: 20px;
+}
+
+.message-content li {
+    margin-bottom: 6px;
+}
+
+.message-content code {
+    background: var(--bg-input);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
 }
 
 /* ============================================
