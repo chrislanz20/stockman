@@ -9,7 +9,11 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import os
 
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), "../data/stockman.db")
+# Use /tmp on Vercel (serverless), local data folder otherwise
+if os.environ.get('VERCEL'):
+    DATABASE_PATH = '/tmp/stockman.db'
+else:
+    DATABASE_PATH = os.path.join(os.path.dirname(__file__), "../data/stockman.db")
 
 class MemoryManager:
     def __init__(self):
