@@ -24,39 +24,70 @@ class YahooFinanceSource:
     def _fetch_quote(self, ticker: str) -> Dict:
         """Synchronous fetch for Yahoo Finance"""
         stock = yf.Ticker(ticker)
-        info = stock.info
 
-        # Get current price data with multiple fallbacks
-        current_price = (
-            info.get("currentPrice") or
-            info.get("regularMarketPrice") or
-            info.get("regularMarketPreviousClose") or
-            info.get("previousClose") or
-            0
-        )
+        current_price = 0
+        previous_close = 0
+        volume = 0
+        name = ticker
 
-        # If still no price, try history
-        if current_price == 0:
-            try:
-                hist = stock.history(period="5d")
-                if not hist.empty:
-                    current_price = hist['Close'].iloc[-1]
-            except:
-                pass
+        # Method 1: Try history first (most reliable for getting price)
+        try:
+            hist = stock.history(period="5d")
+            if not hist.empty:
+                current_price = float(hist['Close'].iloc[-1])
+                if len(hist) > 1:
+                    previous_close = float(hist['Close'].iloc[-2])
+                else:
+                    previous_close = current_price
+                volume = int(hist['Volume'].iloc[-1]) if 'Volume' in hist.columns else 0
+        except Exception:
+            pass
 
-        previous_close = info.get("previousClose") or info.get("regularMarketPreviousClose") or current_price
+        # Method 2: Try fast_info (faster than info)
+        try:
+            fast = stock.fast_info
+            if current_price == 0:
+                current_price = getattr(fast, 'last_price', 0) or 0
+            if previous_close == 0:
+                previous_close = getattr(fast, 'previous_close', 0) or current_price
+            if volume == 0:
+                volume = getattr(fast, 'last_volume', 0) or 0
+        except Exception:
+            pass
+
+        # Method 3: Try info dict (slowest but has most data)
+        info = {}
+        try:
+            info = stock.info or {}
+            if current_price == 0:
+                current_price = (
+                    info.get("currentPrice") or
+                    info.get("regularMarketPrice") or
+                    info.get("regularMarketPreviousClose") or
+                    info.get("previousClose") or
+                    0
+                )
+            if previous_close == 0:
+                previous_close = info.get("previousClose") or info.get("regularMarketPreviousClose") or current_price
+            name = info.get("shortName", ticker)
+        except Exception:
+            pass
+
+        # Ensure we have a previous_close for change calculation
+        if previous_close == 0:
+            previous_close = current_price
 
         change = current_price - previous_close if current_price and previous_close else 0
         change_pct = (change / previous_close * 100) if previous_close else 0
 
         return {
             "ticker": ticker,
-            "name": info.get("shortName", ticker),
-            "price": current_price,
-            "previous_close": previous_close,
+            "name": name,
+            "price": round(current_price, 2) if current_price else 0,
+            "previous_close": round(previous_close, 2) if previous_close else 0,
             "change": round(change, 2),
             "change_pct": round(change_pct, 2),
-            "volume": info.get("volume", 0),
+            "volume": volume,
             "avg_volume": info.get("averageVolume", 0),
             "market_cap": info.get("marketCap", 0),
             "pe_ratio": info.get("trailingPE"),
@@ -70,7 +101,7 @@ class YahooFinanceSource:
             "open": info.get("open"),
             "sector": info.get("sector"),
             "industry": info.get("industry"),
-            "description": info.get("longBusinessSummary", "")[:500]  # First 500 chars
+            "description": info.get("longBusinessSummary", "")[:500] if info.get("longBusinessSummary") else ""
         }
 
     async def get_history(self, ticker: str, period: str = "1mo") -> Dict:
