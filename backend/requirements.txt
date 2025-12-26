@@ -6,7 +6,7 @@ uvicorn==0.27.0
 python-multipart==0.0.6
 
 # Database
-aiosqlite==0.19.0
+psycopg2-binary==2.9.9
 
 # Data Sources
 yfinance==0.2.36

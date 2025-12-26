@@ -253,6 +253,8 @@ async def transcribe_audio(request: Request):
     """Transcribe audio using Whisper"""
     try:
         from openai import OpenAI
+        import tempfile
+
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
         # Get audio data from request
@@ -262,13 +264,27 @@ async def transcribe_audio(request: Request):
         if not audio_file:
             raise HTTPException(status_code=400, detail="No audio file provided")
 
-        # Transcribe with Whisper
-        transcript = client.audio.transcriptions.create(
-            model="whisper-1",
-            file=audio_file.file
-        )
+        # Read the audio content
+        audio_content = await audio_file.read()
 
-        return {"text": transcript.text}
+        # Save to a temporary file with proper extension
+        # OpenAI needs the file extension to determine format
+        with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as tmp:
+            tmp.write(audio_content)
+            tmp_path = tmp.name
+
+        try:
+            # Transcribe with Whisper using the file path
+            with open(tmp_path, "rb") as audio:
+                transcript = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio
+                )
+            return {"text": transcript.text}
+        finally:
+            # Clean up temp file
+            import os as os_module
+            os_module.unlink(tmp_path)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
