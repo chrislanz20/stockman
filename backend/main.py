@@ -4,6 +4,7 @@ Main FastAPI Application
 """
 
 import os
+import sys
 from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
@@ -12,6 +13,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
 import json
+
+# Add backend directory to path for Vercel compatibility
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
 
 from memory import MemoryManager
 from data_sources.aggregator import DataAggregator
