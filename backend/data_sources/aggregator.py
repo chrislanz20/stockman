@@ -38,18 +38,34 @@ class DataAggregator:
                     return_exceptions=True
                 )
 
-                # Combine data (prefer Yahoo for price, Finnhub for sentiment)
+                # Combine data (prefer Finnhub for price - more reliable in serverless)
                 combined = {
                     "ticker": ticker,
                     "timestamp": datetime.now().isoformat()
                 }
 
-                # Yahoo data (primary source for price/fundamentals)
-                if isinstance(yahoo_data, dict):
+                # Finnhub data (PRIMARY source for price - more reliable than Yahoo in serverless)
+                if isinstance(finnhub_data, dict) and finnhub_data.get("current", 0) > 0:
                     combined.update({
-                        "price": yahoo_data.get("price", 0),
-                        "change": yahoo_data.get("change", 0),
-                        "change_pct": yahoo_data.get("change_pct", 0),
+                        "price": finnhub_data.get("current", 0),
+                        "change": finnhub_data.get("change", 0),
+                        "change_pct": finnhub_data.get("change_pct", 0),
+                        "analyst_rating": finnhub_data.get("analyst_rating"),
+                        "target_price": finnhub_data.get("target_price"),
+                        "sentiment_score": finnhub_data.get("sentiment_score")
+                    })
+
+                # Yahoo data (supplementary - fundamentals, fallback for price)
+                if isinstance(yahoo_data, dict):
+                    # Only use Yahoo price if Finnhub failed
+                    if combined.get("price", 0) == 0 and yahoo_data.get("price", 0) > 0:
+                        combined.update({
+                            "price": yahoo_data.get("price", 0),
+                            "change": yahoo_data.get("change", 0),
+                            "change_pct": yahoo_data.get("change_pct", 0),
+                        })
+                    # Always use Yahoo for fundamentals (if available)
+                    combined.update({
                         "volume": yahoo_data.get("volume", 0),
                         "avg_volume": yahoo_data.get("avg_volume", 0),
                         "market_cap": yahoo_data.get("market_cap", 0),
@@ -57,14 +73,6 @@ class DataAggregator:
                         "high_52w": yahoo_data.get("high_52w"),
                         "low_52w": yahoo_data.get("low_52w"),
                         "name": yahoo_data.get("name", ticker)
-                    })
-
-                # Finnhub data (sentiment, analyst ratings)
-                if isinstance(finnhub_data, dict):
-                    combined.update({
-                        "analyst_rating": finnhub_data.get("analyst_rating"),
-                        "target_price": finnhub_data.get("target_price"),
-                        "sentiment_score": finnhub_data.get("sentiment_score")
                     })
 
                 # News headlines
