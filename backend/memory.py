@@ -10,7 +10,15 @@ from typing import List, Dict, Optional
 import os
 
 # Use /tmp on Vercel (serverless), local data folder otherwise
-if os.environ.get('VERCEL'):
+# Check multiple Vercel indicators to be safe
+IS_SERVERLESS = (
+    os.environ.get('VERCEL') or
+    os.environ.get('VERCEL_ENV') or
+    os.environ.get('AWS_LAMBDA_FUNCTION_NAME') or
+    not os.path.exists(os.path.join(os.path.dirname(__file__), "../data"))
+)
+
+if IS_SERVERLESS:
     DATABASE_PATH = '/tmp/stockman.db'
 else:
     DATABASE_PATH = os.path.join(os.path.dirname(__file__), "../data/stockman.db")
