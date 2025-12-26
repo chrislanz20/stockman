@@ -199,6 +199,15 @@ async def get_briefing():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/morning-wisdom")
+async def get_morning_wisdom():
+    """Get today's wisdom quote for morning notification"""
+    quote = briefing_generator.get_daily_quote()
+    return {
+        "wisdom": quote["quote"],
+        "date": datetime.now().strftime("%Y-%m-%d")
+    }
+
 # ---------- Stock Data ----------
 
 @app.get("/api/stock/{ticker}")

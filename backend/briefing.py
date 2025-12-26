@@ -9,38 +9,38 @@ import random
 from datetime import datetime
 from anthropic import Anthropic
 
-# Life wisdom quotes - not stock related, about perspective and positivity
-LIFE_QUOTES = [
-    {"quote": "The happiness of your life depends upon the quality of your thoughts.", "author": "Marcus Aurelius"},
-    {"quote": "What lies behind us and what lies before us are tiny matters compared to what lies within us.", "author": "Ralph Waldo Emerson"},
-    {"quote": "The obstacle is the way.", "author": "Marcus Aurelius"},
-    {"quote": "We suffer more often in imagination than in reality.", "author": "Seneca"},
-    {"quote": "The best time to plant a tree was 20 years ago. The second best time is now.", "author": "Chinese Proverb"},
-    {"quote": "It is not the man who has too little, but the man who craves more, that is poor.", "author": "Seneca"},
-    {"quote": "You have power over your mind - not outside events. Realize this, and you will find strength.", "author": "Marcus Aurelius"},
-    {"quote": "He who has a why to live can bear almost any how.", "author": "Friedrich Nietzsche"},
-    {"quote": "The only way to do great work is to love what you do.", "author": "Steve Jobs"},
-    {"quote": "In the middle of difficulty lies opportunity.", "author": "Albert Einstein"},
-    {"quote": "The wound is the place where the Light enters you.", "author": "Rumi"},
-    {"quote": "Everything you've ever wanted is on the other side of fear.", "author": "George Addair"},
-    {"quote": "The purpose of life is not to be happy. It is to be useful, to be honorable, to be compassionate.", "author": "Ralph Waldo Emerson"},
-    {"quote": "What you get by achieving your goals is not as important as what you become by achieving your goals.", "author": "Zig Ziglar"},
-    {"quote": "Waste no more time arguing about what a good man should be. Be one.", "author": "Marcus Aurelius"},
-    {"quote": "The only impossible journey is the one you never begin.", "author": "Tony Robbins"},
-    {"quote": "Your time is limited, don't waste it living someone else's life.", "author": "Steve Jobs"},
-    {"quote": "Life is 10% what happens to you and 90% how you react to it.", "author": "Charles R. Swindoll"},
-    {"quote": "The greatest glory in living lies not in never falling, but in rising every time we fall.", "author": "Nelson Mandela"},
-    {"quote": "Very little is needed to make a happy life; it is all within yourself, in your way of thinking.", "author": "Marcus Aurelius"},
-    {"quote": "The mind is everything. What you think you become.", "author": "Buddha"},
-    {"quote": "Gratitude turns what we have into enough.", "author": "Anonymous"},
-    {"quote": "Be yourself; everyone else is already taken.", "author": "Oscar Wilde"},
-    {"quote": "The only limit to our realization of tomorrow is our doubts of today.", "author": "Franklin D. Roosevelt"},
-    {"quote": "You must be the change you wish to see in the world.", "author": "Mahatma Gandhi"},
-    {"quote": "It does not matter how slowly you go as long as you do not stop.", "author": "Confucius"},
-    {"quote": "The secret of getting ahead is getting started.", "author": "Mark Twain"},
-    {"quote": "Believe you can and you're halfway there.", "author": "Theodore Roosevelt"},
-    {"quote": "Everything has beauty, but not everyone sees it.", "author": "Confucius"},
-    {"quote": "The journey of a thousand miles begins with one step.", "author": "Lao Tzu"},
+# Perspective-shifting wisdom - thoughts that make you pause and think
+WISDOM_QUOTES = [
+    {"quote": "A year from now, you'll wish you had started today. But here's the thing - today you can actually start.", "author": ""},
+    {"quote": "The days are long but the decades are short. Don't postpone joy waiting for the 'right time.'", "author": ""},
+    {"quote": "Everyone you meet is fighting a battle you know nothing about. Be kind. Always.", "author": ""},
+    {"quote": "You're not stuck. You're just committed to patterns that no longer serve you. And patterns can change.", "author": ""},
+    {"quote": "The person you'll be in 5 years is based on the books you read and the people you spend time with today.", "author": ""},
+    {"quote": "Worrying is paying interest on a debt you may never owe.", "author": ""},
+    {"quote": "Most of what we stress about won't matter in 5 years. Focus on what will.", "author": ""},
+    {"quote": "The cost of not following your heart is spending the rest of your life wishing you had.", "author": ""},
+    {"quote": "You can't go back and change the beginning, but you can start where you are and change the ending.", "author": ""},
+    {"quote": "Every expert was once a beginner. Every master was once a disaster. Keep going.", "author": ""},
+    {"quote": "Your children won't remember the size of your house. They'll remember the size of your presence.", "author": ""},
+    {"quote": "The things you own end up owning you. Travel light through life.", "author": ""},
+    {"quote": "At the end of life, nobody wishes they had worked more. Invest in what actually matters.", "author": ""},
+    {"quote": "You're not behind. You're not ahead. You're exactly where you need to be. Just don't stop.", "author": ""},
+    {"quote": "The quality of your life is determined by the quality of the questions you ask yourself.", "author": ""},
+    {"quote": "Fear kills more dreams than failure ever will. The things you don't try are the only guaranteed failures.", "author": ""},
+    {"quote": "Comparison is the thief of joy. Run your own race.", "author": ""},
+    {"quote": "Your potential future self is watching you right now through your memories. Make them proud.", "author": ""},
+    {"quote": "The present moment is the only moment you have direct access to. Don't waste it.", "author": ""},
+    {"quote": "Nothing changes if nothing changes. You have to do something different to get something different.", "author": ""},
+    {"quote": "People will forget what you said. They'll forget what you did. But they'll never forget how you made them feel.", "author": ""},
+    {"quote": "You can't pour from an empty cup. Take care of yourself first.", "author": ""},
+    {"quote": "Growth is uncomfortable. Staying the same is uncomfortable. Choose the discomfort that leads somewhere.", "author": ""},
+    {"quote": "The best view comes after the hardest climb. You're closer to the top than you think.", "author": ""},
+    {"quote": "Don't let the fear of the time it takes stop you. The time will pass anyway.", "author": ""},
+    {"quote": "Your peace is more important than proving a point. Let things go.", "author": ""},
+    {"quote": "Sometimes the bravest thing you can do is ask for help.", "author": ""},
+    {"quote": "Life becomes easier when you accept the apology you never received.", "author": ""},
+    {"quote": "You don't have to attend every argument you're invited to.", "author": ""},
+    {"quote": "The energy you bring to a room matters more than what you say when you get there.", "author": ""},
 ]
 
 
@@ -49,11 +49,11 @@ class BriefingGenerator:
         self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
     def get_daily_quote(self) -> dict:
-        """Get a random life wisdom quote"""
+        """Get a random perspective-shifting wisdom quote"""
         # Use date as seed for consistent daily quote
         today = datetime.now().strftime("%Y-%m-%d")
         random.seed(hash(today))
-        quote = random.choice(LIFE_QUOTES)
+        quote = random.choice(WISDOM_QUOTES)
         random.seed()  # Reset seed
         return quote
 

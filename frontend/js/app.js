@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     registerServiceWorker();
     loadUserGreeting();
+    checkMorningWisdom();
 });
 
 function initEventListeners() {
@@ -326,6 +327,44 @@ async function loadUserGreeting() {
         }
     } catch (error) {
         console.error('Greeting error:', error);
+    }
+}
+
+async function checkMorningWisdom() {
+    // Check if it's morning (7:00 AM - 9:00 AM)
+    const hour = new Date().getHours();
+    const minute = new Date().getMinutes();
+
+    // Target: around 7:50 AM, but check window of 7:00-9:00
+    if (hour < 7 || hour >= 9) return;
+
+    // Check if we've already shown today's wisdom
+    const today = new Date().toDateString();
+    const lastShown = localStorage.getItem('stockman_wisdom_date');
+
+    if (lastShown === today) return;
+
+    // Check notification permission
+    if (Notification.permission !== 'granted') return;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/morning-wisdom`);
+        const data = await response.json();
+
+        if (data.wisdom) {
+            // Show the notification
+            new Notification('Good Morning ☀️', {
+                body: data.wisdom,
+                icon: '/icons/icon-192.png',
+                tag: 'morning-wisdom',
+                requireInteraction: false
+            });
+
+            // Mark as shown for today
+            localStorage.setItem('stockman_wisdom_date', today);
+        }
+    } catch (error) {
+        console.error('Morning wisdom error:', error);
     }
 }
 
