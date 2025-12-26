@@ -62,8 +62,12 @@ class SettingsUpdate(BaseModel):
 
 @app.get("/")
 async def root():
-    """Serve the main app"""
-    return HTMLResponse(open("../frontend/index.html").read())
+    """Serve the main app - on Vercel this is handled by static routing"""
+    frontend_path = os.path.join(os.path.dirname(__file__), "../frontend/index.html")
+    if os.path.exists(frontend_path):
+        return HTMLResponse(open(frontend_path).read())
+    # On Vercel, the frontend is served via static routing
+    return {"message": "Stockman API - frontend served separately"}
 
 @app.get("/api/health")
 async def health():
@@ -287,8 +291,10 @@ async def synthesize_speech(request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="../frontend"), name="static")
+# Mount static files (only for local development - Vercel handles this via routes)
+frontend_dir = os.path.join(os.path.dirname(__file__), "../frontend")
+if os.path.exists(frontend_dir):
+    app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
 if __name__ == "__main__":
     import uvicorn
