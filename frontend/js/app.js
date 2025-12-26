@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     registerServiceWorker();
     loadUserGreeting();
     checkMorningWisdom();
+    loadTicker();
 });
 
 function initEventListeners() {
@@ -644,6 +645,95 @@ function formatMessage(text) {
     }
 
     return html;
+}
+
+// ============================================
+// Stock Ticker
+// ============================================
+
+async function loadTicker() {
+    const tickerContent = document.getElementById('ticker-content');
+    if (!tickerContent) return;
+
+    try {
+        // Fetch portfolio and watchlist
+        const [portfolioRes, watchlistRes] = await Promise.all([
+            fetch(`${API_BASE}/api/portfolio`),
+            fetch(`${API_BASE}/api/watchlist`)
+        ]);
+
+        const { portfolio } = await portfolioRes.json();
+        const { watchlist } = await watchlistRes.json();
+
+        // Get all unique tickers
+        const tickers = [...new Set([
+            ...portfolio.map(s => s.ticker),
+            ...watchlist.map(s => s.ticker)
+        ])];
+
+        // If no stocks, show default major indices
+        if (tickers.length === 0) {
+            const defaultTickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA'];
+            await updateTickerWithStocks(defaultTickers, tickerContent);
+        } else {
+            await updateTickerWithStocks(tickers, tickerContent);
+        }
+
+        // Refresh ticker every 60 seconds
+        setInterval(() => loadTicker(), 60000);
+
+    } catch (error) {
+        console.error('Ticker error:', error);
+        tickerContent.innerHTML = '<span class="ticker-placeholder">Market data unavailable</span>';
+    }
+}
+
+async function updateTickerWithStocks(tickers, tickerContent) {
+    try {
+        // Fetch stock data for all tickers
+        const stockDataPromises = tickers.map(ticker =>
+            fetch(`${API_BASE}/api/stock/${ticker}`)
+                .then(res => res.json())
+                .catch(() => null)
+        );
+
+        const stockData = await Promise.all(stockDataPromises);
+
+        // Build ticker items
+        const tickerItems = stockData
+            .filter(data => data && data.price)
+            .map(data => {
+                const changePercent = data.change_percent || 0;
+                const isUp = changePercent >= 0;
+                const changeClass = isUp ? 'up' : 'down';
+                const changeSign = isUp ? '+' : '';
+
+                return `
+                    <div class="ticker-item">
+                        <span class="ticker-symbol">${data.ticker || data.symbol}</span>
+                        <span class="ticker-price">$${data.price.toFixed(2)}</span>
+                        <span class="ticker-change ${changeClass}">${changeSign}${changePercent.toFixed(2)}%</span>
+                    </div>
+                `;
+            });
+
+        if (tickerItems.length > 0) {
+            // Duplicate items to create seamless loop
+            const allItems = [...tickerItems, ...tickerItems].join('<span class="ticker-divider">•</span>');
+            tickerContent.innerHTML = allItems;
+
+            // Adjust animation speed based on content length
+            const contentWidth = tickerContent.scrollWidth;
+            const duration = Math.max(20, contentWidth / 50); // Slower for more content
+            tickerContent.style.animationDuration = `${duration}s`;
+        } else {
+            tickerContent.innerHTML = '<span class="ticker-placeholder">No stock data available</span>';
+        }
+
+    } catch (error) {
+        console.error('Error updating ticker:', error);
+        tickerContent.innerHTML = '<span class="ticker-placeholder">Market data unavailable</span>';
+    }
 }
 
 // Make functions globally available for onclick handlers

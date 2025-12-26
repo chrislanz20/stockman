@@ -108,6 +108,92 @@ body {
 }
 
 /* ============================================
+   Stock Ticker
+   ============================================ */
+
+.ticker-container {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    height: 36px;
+    display: flex;
+    align-items: center;
+}
+
+.ticker-track {
+    display: flex;
+    width: 100%;
+    overflow: hidden;
+}
+
+.ticker-content {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    animation: ticker-scroll 30s linear infinite;
+    white-space: nowrap;
+    padding-left: 100%;
+}
+
+.ticker-content:hover {
+    animation-play-state: paused;
+}
+
+@keyframes ticker-scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.ticker-symbol {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ticker-price {
+    color: var(--text-secondary);
+}
+
+.ticker-change {
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.ticker-change.up {
+    color: var(--success);
+    background: rgba(0, 255, 136, 0.1);
+}
+
+.ticker-change.down {
+    color: var(--error);
+    background: rgba(255, 77, 77, 0.1);
+}
+
+.ticker-placeholder {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-style: italic;
+}
+
+.ticker-divider {
+    color: var(--border-light);
+    font-size: 10px;
+}
+
+/* ============================================
    Chat Container
    ============================================ */
 
