@@ -42,13 +42,5 @@
             "src": "/(.*)",
             "dest": "frontend/index.html"
         }
-    ],
-    "env": {
-        "ANTHROPIC_API_KEY": "@anthropic-api-key",
-        "ELEVENLABS_API_KEY": "@elevenlabs-api-key",
-        "ELEVENLABS_VOICE_ID": "@elevenlabs-voice-id",
-        "OPENAI_API_KEY": "@openai-api-key",
-        "FINNHUB_API_KEY": "@finnhub-api-key",
-        "ALPHA_VANTAGE_API_KEY": "@alpha-vantage-api-key"
-    }
+    ]
 }
