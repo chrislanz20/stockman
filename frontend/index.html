@@ -49,8 +49,10 @@
             </div>
         </div>
 
-        <!-- Main Chat Area -->
-        <main class="chat-container" id="chat-container">
+        <!-- Page Content Container -->
+        <div class="page-container">
+            <!-- Chat Page -->
+            <main class="chat-container page-content active" id="chat-container" data-page="chat">
             <!-- Welcome Card (shown when no messages) -->
             <div id="welcome-card" class="welcome-card">
                 <div class="welcome-greeting" id="welcome-greeting">
@@ -90,7 +92,79 @@
             <div id="messages" class="messages"></div>
         </main>
 
-        <!-- Input Area -->
+            <!-- Market Page -->
+            <div class="page-content" id="market-page" data-page="market">
+                <div class="market-overview">
+                    <!-- Market Indices -->
+                    <section class="market-section">
+                        <h2 class="section-title">Market Indices</h2>
+                        <div class="indices-grid" id="indices-grid">
+                            <div class="index-card loading">
+                                <span class="index-name">S&P 500</span>
+                                <span class="index-value">--</span>
+                                <span class="index-change">--</span>
+                            </div>
+                            <div class="index-card loading">
+                                <span class="index-name">Dow Jones</span>
+                                <span class="index-value">--</span>
+                                <span class="index-change">--</span>
+                            </div>
+                            <div class="index-card loading">
+                                <span class="index-name">Nasdaq</span>
+                                <span class="index-value">--</span>
+                                <span class="index-change">--</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Top Movers -->
+                    <section class="market-section">
+                        <h2 class="section-title">Top Gainers</h2>
+                        <div class="movers-list" id="gainers-list">
+                            <div class="mover-placeholder">Loading...</div>
+                        </div>
+                    </section>
+
+                    <section class="market-section">
+                        <h2 class="section-title">Top Losers</h2>
+                        <div class="movers-list" id="losers-list">
+                            <div class="mover-placeholder">Loading...</div>
+                        </div>
+                    </section>
+
+                    <!-- Sector Performance -->
+                    <section class="market-section">
+                        <h2 class="section-title">Sector Performance</h2>
+                        <div class="sectors-grid" id="sectors-grid">
+                            <div class="sector-placeholder">Loading sectors...</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Calendar Page -->
+            <div class="page-content" id="calendar-page" data-page="calendar">
+                <div class="earnings-calendar">
+                    <section class="market-section">
+                        <h2 class="section-title">Upcoming Earnings</h2>
+                        <p class="section-subtitle">Companies reporting this week</p>
+                        <div class="earnings-list" id="earnings-list">
+                            <div class="earnings-placeholder">Loading earnings calendar...</div>
+                        </div>
+                    </section>
+
+                    <section class="market-section">
+                        <h2 class="section-title">Your Watchlist Earnings</h2>
+                        <p class="section-subtitle">Earnings dates for stocks you're tracking</p>
+                        <div class="earnings-list" id="watchlist-earnings">
+                            <div class="earnings-placeholder">Add stocks to your watchlist to see their earnings dates</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area (Chat only) -->
         <footer class="input-area">
             <div class="input-container">
                 <input
@@ -208,6 +282,52 @@
                 <span></span>
                 <span></span>
                 <span></span>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav" id="bottom-nav">
+            <button class="nav-btn active" data-page="chat">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <span>Chat</span>
+            </button>
+            <button class="nav-btn" data-page="market">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="20" x2="12" y2="10"></line>
+                    <line x1="18" y1="20" x2="18" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="16"></line>
+                </svg>
+                <span>Market</span>
+            </button>
+            <button class="nav-btn" data-page="calendar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Earnings</span>
+            </button>
+        </nav>
+
+        <!-- Stock Detail Modal -->
+        <div id="stock-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content stock-detail-modal">
+                <div class="modal-header">
+                    <h2 id="stock-modal-title">AAPL</h2>
+                    <button id="close-stock-modal" class="icon-btn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="stock-detail-content" id="stock-detail-content">
+                    <!-- Populated by JavaScript -->
+                </div>
             </div>
         </div>
     </div>

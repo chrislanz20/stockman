@@ -901,3 +901,444 @@ body {
 .empty-state p {
     font-size: 14px;
 }
+
+/* ============================================
+   Bottom Navigation
+   ============================================ */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-around;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    padding: 8px 0;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    z-index: 100;
+}
+
+.nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.nav-btn:hover {
+    color: var(--text-secondary);
+}
+
+.nav-btn.active {
+    color: var(--accent);
+}
+
+.nav-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.nav-btn span {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* ============================================
+   Page Container & Content
+   ============================================ */
+
+.page-container {
+    position: relative;
+}
+
+.page-content {
+    display: none;
+}
+
+.page-content.active {
+    display: block;
+}
+
+/* Adjust input area and chat for bottom nav */
+.input-area {
+    padding-bottom: calc(70px + env(safe-area-inset-bottom));
+}
+
+/* ============================================
+   Market Overview Page
+   ============================================ */
+
+.market-overview {
+    padding: 20px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.market-section {
+    margin-bottom: 32px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.section-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: -12px;
+    margin-bottom: 16px;
+}
+
+/* Indices Grid */
+.indices-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.index-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+}
+
+.index-card.loading {
+    opacity: 0.5;
+}
+
+.index-name {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.index-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.index-change {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.index-change.up {
+    color: var(--success);
+}
+
+.index-change.down {
+    color: var(--error);
+}
+
+/* Movers List */
+.movers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mover-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.mover-item:hover {
+    background: var(--bg-card-hover);
+}
+
+.mover-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.mover-symbol {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.mover-name {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.mover-price {
+    text-align: right;
+}
+
+.mover-price-value {
+    display: block;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.mover-change {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.mover-change.up {
+    color: var(--success);
+}
+
+.mover-change.down {
+    color: var(--error);
+}
+
+.mover-placeholder {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px;
+}
+
+/* Sectors Grid */
+.sectors-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.sector-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+}
+
+.sector-name {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.sector-change {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.sector-change.up {
+    color: var(--success);
+}
+
+.sector-change.down {
+    color: var(--error);
+}
+
+.sector-placeholder {
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px;
+}
+
+/* ============================================
+   Earnings Calendar Page
+   ============================================ */
+
+.earnings-calendar {
+    padding: 20px;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.earnings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.earnings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.earnings-item:hover {
+    background: var(--bg-card-hover);
+}
+
+.earnings-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.earnings-symbol {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.earnings-name {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.earnings-date {
+    text-align: right;
+}
+
+.earnings-date-value {
+    display: block;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.earnings-time {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.earnings-placeholder {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 30px 20px;
+    font-size: 14px;
+}
+
+/* ============================================
+   Stock Detail Modal
+   ============================================ */
+
+.stock-detail-modal {
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.stock-detail-content {
+    padding: 20px;
+}
+
+.stock-price-large {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.stock-price-value {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stock-price-change {
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+.stock-price-change.up {
+    color: var(--success);
+}
+
+.stock-price-change.down {
+    color: var(--error);
+}
+
+.stock-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.stat-item {
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.stock-news {
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+}
+
+.stock-news h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.news-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.news-item:last-child {
+    border-bottom: none;
+}
+
+.news-headline {
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.news-source {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .indices-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sectors-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stock-stats {
+        grid-template-columns: 1fr;
+    }
+}

@@ -230,6 +230,143 @@ async def get_stock_score(ticker: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# ---------- Market Data ----------
+
+@app.get("/api/market/indices")
+async def get_market_indices():
+    """Get major market indices"""
+    try:
+        indices = {
+            'SPY': 'S&P 500',
+            'DIA': 'Dow Jones',
+            'QQQ': 'Nasdaq'
+        }
+        data = await data_aggregator.get_stock_data(list(indices.keys()))
+
+        result = []
+        for symbol, name in indices.items():
+            if symbol in data:
+                d = data[symbol]
+                result.append({
+                    'symbol': symbol,
+                    'name': name,
+                    'price': d.get('price', 0),
+                    'change': d.get('change', 0),
+                    'change_pct': d.get('change_pct', 0)
+                })
+        return {'indices': result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/market/movers")
+async def get_market_movers():
+    """Get top gainers and losers from tracked stocks"""
+    try:
+        # Use a set of popular stocks for movers
+        popular = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'NVDA', 'TSLA', 'META', 'NFLX',
+                   'AMD', 'INTC', 'CRM', 'ORCL', 'JPM', 'V', 'MA', 'BAC', 'JNJ', 'PFE']
+
+        data = await data_aggregator.get_stock_data(popular)
+
+        stocks = []
+        for ticker, info in data.items():
+            if info.get('price', 0) > 0:
+                stocks.append({
+                    'symbol': ticker,
+                    'name': info.get('name', ticker),
+                    'price': info.get('price', 0),
+                    'change': info.get('change', 0),
+                    'change_pct': info.get('change_pct', 0)
+                })
+
+        # Sort by change percentage
+        gainers = sorted([s for s in stocks if s['change_pct'] >= 0],
+                        key=lambda x: x['change_pct'], reverse=True)[:5]
+        losers = sorted([s for s in stocks if s['change_pct'] < 0],
+                       key=lambda x: x['change_pct'])[:5]
+
+        return {'gainers': gainers, 'losers': losers}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/market/sectors")
+async def get_sector_performance():
+    """Get sector performance using sector ETFs"""
+    try:
+        sectors = {
+            'XLK': 'Technology',
+            'XLF': 'Financial',
+            'XLV': 'Healthcare',
+            'XLE': 'Energy',
+            'XLY': 'Consumer',
+            'XLI': 'Industrial',
+            'XLP': 'Staples',
+            'XLU': 'Utilities',
+            'XLRE': 'Real Estate'
+        }
+
+        data = await data_aggregator.get_stock_data(list(sectors.keys()))
+
+        result = []
+        for symbol, name in sectors.items():
+            if symbol in data:
+                d = data[symbol]
+                result.append({
+                    'symbol': symbol,
+                    'name': name,
+                    'change_pct': d.get('change_pct', 0)
+                })
+
+        # Sort by change
+        result.sort(key=lambda x: x['change_pct'], reverse=True)
+        return {'sectors': result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/earnings")
+async def get_earnings_calendar():
+    """Get upcoming earnings from Finnhub"""
+    try:
+        # Get earnings for next 7 days
+        from datetime import timedelta
+        today = datetime.now()
+        to_date = today + timedelta(days=7)
+
+        # Use Finnhub earnings calendar
+        import httpx
+        api_key = os.getenv("FINNHUB_API_KEY")
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://finnhub.io/api/v1/calendar/earnings",
+                params={
+                    "from": today.strftime("%Y-%m-%d"),
+                    "to": to_date.strftime("%Y-%m-%d"),
+                    "token": api_key
+                },
+                timeout=10.0
+            )
+            data = response.json()
+
+            earnings = data.get('earningsCalendar', [])
+
+            # Filter to well-known companies and format
+            result = []
+            for e in earnings[:20]:  # Limit to 20
+                if e.get('symbol'):
+                    result.append({
+                        'symbol': e.get('symbol'),
+                        'date': e.get('date'),
+                        'hour': e.get('hour', 'tbd'),  # bmo = before market open, amc = after market close
+                        'estimate': e.get('epsEstimate'),
+                        'year': e.get('year'),
+                        'quarter': e.get('quarter')
+                    })
+
+            return {'earnings': result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # ---------- Settings ----------
 
 @app.get("/api/settings")

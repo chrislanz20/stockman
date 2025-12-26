@@ -72,6 +72,7 @@ const elements = {
 
 document.addEventListener('DOMContentLoaded', () => {
     initEventListeners();
+    initNavigation();
     loadSettings();
     registerServiceWorker();
     loadUserGreeting();
@@ -794,3 +795,318 @@ async function updateTickerWithStocks(tickers, tickerContent) {
 window.removeFromPortfolio = removeFromPortfolio;
 window.removeFromWatchlist = removeFromWatchlist;
 window.openSettingsToTab = openSettingsToTab;
+window.showStockDetail = showStockDetail;
+
+// ============================================
+// Navigation
+// ============================================
+
+let currentPage = 'chat';
+
+function initNavigation() {
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const inputArea = document.querySelector('.input-area');
+
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const page = btn.dataset.page;
+            switchPage(page);
+        });
+    });
+
+    // Stock modal close
+    const closeStockModal = document.getElementById('close-stock-modal');
+    const stockModal = document.getElementById('stock-modal');
+    if (closeStockModal) {
+        closeStockModal.addEventListener('click', () => stockModal.classList.add('hidden'));
+    }
+    if (stockModal) {
+        stockModal.querySelector('.modal-overlay').addEventListener('click', () => stockModal.classList.add('hidden'));
+    }
+}
+
+function switchPage(page) {
+    currentPage = page;
+
+    // Update nav buttons
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.page === page);
+    });
+
+    // Update page visibility
+    document.querySelectorAll('.page-content').forEach(el => {
+        el.classList.toggle('active', el.dataset.page === page);
+    });
+
+    // Show/hide input area (only on chat page)
+    const inputArea = document.querySelector('.input-area');
+    if (inputArea) {
+        inputArea.style.display = page === 'chat' ? 'block' : 'none';
+    }
+
+    // Load page data
+    if (page === 'market') {
+        loadMarketData();
+    } else if (page === 'calendar') {
+        loadEarningsCalendar();
+    }
+}
+
+// ============================================
+// Market Page
+// ============================================
+
+async function loadMarketData() {
+    // Load all market data in parallel
+    Promise.all([
+        loadIndices(),
+        loadMovers(),
+        loadSectors()
+    ]).catch(console.error);
+}
+
+async function loadIndices() {
+    const grid = document.getElementById('indices-grid');
+    if (!grid) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/market/indices`);
+        const { indices } = await response.json();
+
+        grid.innerHTML = indices.map(idx => {
+            const isUp = idx.change_pct >= 0;
+            return `
+                <div class="index-card">
+                    <span class="index-name">${idx.name}</span>
+                    <span class="index-value">$${idx.price.toFixed(2)}</span>
+                    <span class="index-change ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${idx.change_pct.toFixed(2)}%</span>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading indices:', error);
+        grid.innerHTML = '<div class="mover-placeholder">Unable to load indices</div>';
+    }
+}
+
+async function loadMovers() {
+    const gainersList = document.getElementById('gainers-list');
+    const losersList = document.getElementById('losers-list');
+    if (!gainersList || !losersList) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/market/movers`);
+        const { gainers, losers } = await response.json();
+
+        gainersList.innerHTML = gainers.length > 0
+            ? gainers.map(s => renderMoverItem(s, true)).join('')
+            : '<div class="mover-placeholder">No gainers today</div>';
+
+        losersList.innerHTML = losers.length > 0
+            ? losers.map(s => renderMoverItem(s, false)).join('')
+            : '<div class="mover-placeholder">No losers today</div>';
+
+    } catch (error) {
+        console.error('Error loading movers:', error);
+        gainersList.innerHTML = '<div class="mover-placeholder">Unable to load data</div>';
+        losersList.innerHTML = '<div class="mover-placeholder">Unable to load data</div>';
+    }
+}
+
+function renderMoverItem(stock, isGainer) {
+    const isUp = stock.change_pct >= 0;
+    return `
+        <div class="mover-item" onclick="showStockDetail('${stock.symbol}')">
+            <div class="mover-info">
+                <span class="mover-symbol">${stock.symbol}</span>
+                <span class="mover-name">${stock.name}</span>
+            </div>
+            <div class="mover-price">
+                <span class="mover-price-value">$${stock.price.toFixed(2)}</span>
+                <span class="mover-change ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${stock.change_pct.toFixed(2)}%</span>
+            </div>
+        </div>
+    `;
+}
+
+async function loadSectors() {
+    const grid = document.getElementById('sectors-grid');
+    if (!grid) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/market/sectors`);
+        const { sectors } = await response.json();
+
+        grid.innerHTML = sectors.map(sector => {
+            const isUp = sector.change_pct >= 0;
+            return `
+                <div class="sector-item">
+                    <span class="sector-name">${sector.name}</span>
+                    <span class="sector-change ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${sector.change_pct.toFixed(2)}%</span>
+                </div>
+            `;
+        }).join('');
+    } catch (error) {
+        console.error('Error loading sectors:', error);
+        grid.innerHTML = '<div class="sector-placeholder">Unable to load sectors</div>';
+    }
+}
+
+// ============================================
+// Earnings Calendar
+// ============================================
+
+async function loadEarningsCalendar() {
+    const earningsList = document.getElementById('earnings-list');
+    const watchlistEarnings = document.getElementById('watchlist-earnings');
+    if (!earningsList) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/earnings`);
+        const { earnings } = await response.json();
+
+        if (earnings.length > 0) {
+            earningsList.innerHTML = earnings.map(e => renderEarningsItem(e)).join('');
+        } else {
+            earningsList.innerHTML = '<div class="earnings-placeholder">No earnings scheduled this week</div>';
+        }
+
+        // Load watchlist earnings
+        if (watchlistEarnings) {
+            await loadWatchlistEarnings(earnings);
+        }
+    } catch (error) {
+        console.error('Error loading earnings:', error);
+        earningsList.innerHTML = '<div class="earnings-placeholder">Unable to load earnings calendar</div>';
+    }
+}
+
+async function loadWatchlistEarnings(allEarnings) {
+    const container = document.getElementById('watchlist-earnings');
+    if (!container) return;
+
+    try {
+        // Get user's watchlist
+        const response = await fetch(`${API_BASE}/api/watchlist`);
+        const { watchlist } = await response.json();
+
+        const watchlistSymbols = new Set(watchlist.map(s => s.ticker.toUpperCase()));
+
+        // Filter earnings for watchlist stocks
+        const watchlistEarnings = allEarnings.filter(e =>
+            watchlistSymbols.has(e.symbol.toUpperCase())
+        );
+
+        if (watchlistEarnings.length > 0) {
+            container.innerHTML = watchlistEarnings.map(e => renderEarningsItem(e)).join('');
+        } else {
+            container.innerHTML = '<div class="earnings-placeholder">None of your watched stocks have earnings this week</div>';
+        }
+    } catch (error) {
+        console.error('Error loading watchlist earnings:', error);
+    }
+}
+
+function renderEarningsItem(earning) {
+    const date = new Date(earning.date);
+    const dateStr = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const hourStr = earning.hour === 'bmo' ? 'Before Open' :
+                   earning.hour === 'amc' ? 'After Close' : 'TBD';
+
+    return `
+        <div class="earnings-item" onclick="showStockDetail('${earning.symbol}')">
+            <div class="earnings-info">
+                <span class="earnings-symbol">${earning.symbol}</span>
+                <span class="earnings-name">Q${earning.quarter} ${earning.year}</span>
+            </div>
+            <div class="earnings-date">
+                <span class="earnings-date-value">${dateStr}</span>
+                <span class="earnings-time">${hourStr}</span>
+            </div>
+        </div>
+    `;
+}
+
+// ============================================
+// Stock Detail Modal
+// ============================================
+
+async function showStockDetail(symbol) {
+    const modal = document.getElementById('stock-modal');
+    const title = document.getElementById('stock-modal-title');
+    const content = document.getElementById('stock-detail-content');
+
+    if (!modal || !content) return;
+
+    // Show modal with loading state
+    title.textContent = symbol;
+    content.innerHTML = '<div class="mover-placeholder">Loading...</div>';
+    modal.classList.remove('hidden');
+
+    try {
+        const response = await fetch(`${API_BASE}/api/stock/${symbol}`);
+        const data = await response.json();
+
+        const isUp = (data.change_pct || 0) >= 0;
+        const changeSign = isUp ? '+' : '';
+
+        content.innerHTML = `
+            <div class="stock-price-large">
+                <div class="stock-price-value">$${(data.price || 0).toFixed(2)}</div>
+                <div class="stock-price-change ${isUp ? 'up' : 'down'}">
+                    ${changeSign}$${(data.change || 0).toFixed(2)} (${changeSign}${(data.change_pct || 0).toFixed(2)}%)
+                </div>
+            </div>
+
+            <div class="stock-stats">
+                ${data.volume ? `<div class="stat-item"><div class="stat-label">Volume</div><div class="stat-value">${formatNumber(data.volume)}</div></div>` : ''}
+                ${data.market_cap ? `<div class="stat-item"><div class="stat-label">Market Cap</div><div class="stat-value">${formatMarketCap(data.market_cap)}</div></div>` : ''}
+                ${data.pe_ratio ? `<div class="stat-item"><div class="stat-label">P/E Ratio</div><div class="stat-value">${data.pe_ratio.toFixed(2)}</div></div>` : ''}
+                ${data.high_52w ? `<div class="stat-item"><div class="stat-label">52W High</div><div class="stat-value">$${data.high_52w.toFixed(2)}</div></div>` : ''}
+                ${data.low_52w ? `<div class="stat-item"><div class="stat-label">52W Low</div><div class="stat-value">$${data.low_52w.toFixed(2)}</div></div>` : ''}
+                ${data.avg_volume ? `<div class="stat-item"><div class="stat-label">Avg Volume</div><div class="stat-value">${formatNumber(data.avg_volume)}</div></div>` : ''}
+            </div>
+
+            ${data.news && data.news.length > 0 ? `
+                <div class="stock-news">
+                    <h3>Recent News</h3>
+                    ${data.news.slice(0, 3).map(n => `
+                        <div class="news-item">
+                            <div class="news-headline">${n.headline}</div>
+                            <div class="news-source">${n.source} • ${formatNewsDate(n.datetime)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        `;
+    } catch (error) {
+        console.error('Error loading stock detail:', error);
+        content.innerHTML = '<div class="mover-placeholder">Unable to load stock data</div>';
+    }
+}
+
+function formatNumber(num) {
+    if (!num) return '—';
+    if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+    if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+    if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+    return num.toLocaleString();
+}
+
+function formatMarketCap(num) {
+    if (!num) return '—';
+    if (num >= 1e12) return '$' + (num / 1e12).toFixed(2) + 'T';
+    if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + 'B';
+    if (num >= 1e6) return '$' + (num / 1e6).toFixed(2) + 'M';
+    return '$' + num.toLocaleString();
+}
+
+function formatNewsDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch {
+        return dateStr;
+    }
+}
